@@ -62,22 +62,21 @@ app.post('/api/contact', contactLimiter, async (req, res) => {
         return res.status(500).json({ error: 'Szerver konfiguráció hiányzik.' });
     }
 
-    const recipients = process.env.NOTIFY_EMAIL.split(',').map(e => e.trim());
-    const safeName   = esc(from_name);
-    const safeEmail  = esc(from_email);
-    const safePhone  = esc(phone || '–');
-    const safeMsg    = esc(message).replace(/\n/g, '<br>');
+    const safeName  = esc(from_name);
+    const safeEmail = esc(from_email);
+    const safePhone = esc(phone || '–');
+    const safeMsg   = esc(message).replace(/\n/g, '<br>');
 
     try {
         const response = await fetch('https://api.resend.com/emails', {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
-                'Content-Type': 'application/json',
+                'Content-Type':  'application/json',
             },
             body: JSON.stringify({
                 from:     'NyáriKezek Weboldal <onboarding@resend.dev>',
-                to:       recipients,
+                to:       [process.env.NOTIFY_EMAIL.trim()],
                 reply_to: from_email,
                 subject:  `Új üzenet a weboldalról – ${safeName}`,
                 html: `
@@ -106,11 +105,11 @@ app.post('/api/contact', contactLimiter, async (req, res) => {
 
         if (!response.ok) {
             const err = await response.json();
-            console.error('Resend hiba:', err);
+            console.error('Resend hiba:', JSON.stringify(err));
             return res.status(500).json({ error: 'E-mail küldési hiba.' });
         }
 
-        console.log(`✉️  E-mail elküldve → ${recipients.join(', ')} (${safeName})`);
+        console.log(`✉️  E-mail elküldve → ${process.env.NOTIFY_EMAIL} (${safeName})`);
         res.json({ success: true });
 
     } catch (err) {
