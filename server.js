@@ -73,7 +73,7 @@ app.post('/api/contact', contactLimiter, async (req, res) => {
             headers: {
                 'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
                 'Content-Type':  'application/json',
-            },
+            }, 
             body: JSON.stringify({
                 from:     'NyáriKezek Weboldal <onboarding@resend.dev>',
                 to:       [process.env.NOTIFY_EMAIL.trim()],
