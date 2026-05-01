@@ -3241,10 +3241,21 @@ body,
     const origHTML = submitBtn.innerHTML;
     submitBtn.innerHTML = 'Küldés...';
 
+    // Ha 5 másodperc után még mindig tölt, jelezzük hogy dolgozik
+    const slowTimer = setTimeout(() => {
+      showStatus('info', 'Az üzenet küldése folyamatban, kérlek várj...');
+      statusDiv.className = 'rounded-lg px-4 py-3 text-sm font-medium bg-blue-50 text-blue-700 border border-blue-200';
+      statusDiv.classList.remove('hidden');
+    }, 5000);
+
     try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 60000); // 60 másodperc max
+
       const res = await fetch('/api/contact', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
+        signal:  controller.signal,
         body: JSON.stringify({
           from_name:  name,
           from_email: email,
@@ -3252,6 +3263,7 @@ body,
           message: message,
         }),
       });
+      clearTimeout(timeout);
       const data = await res.json();
       if (res.ok) {
         showStatus('success', 'Üzeneted megérkezett! Hamarosan visszajelzünk.');
@@ -3259,9 +3271,14 @@ body,
       } else {
         showStatus('error', data.error || 'Hiba történt. Hívj minket: +36 30 123 4567');
       }
-    } catch {
-      showStatus('error', 'Hálózati hiba. Hívj minket közvetlenül: +36 30 123 4567');
+    } catch (err) {
+      if (err.name === 'AbortError') {
+        showStatus('error', 'A szerver nem válaszolt. Hívj minket: +36 30 123 4567');
+      } else {
+        showStatus('error', 'Hálózati hiba. Hívj minket közvetlenül: +36 30 123 4567');
+      }
     } finally {
+      clearTimeout(slowTimer);
       submitBtn.disabled = false;
       submitBtn.innerHTML = origHTML;
     }
