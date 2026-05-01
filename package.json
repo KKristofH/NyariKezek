@@ -1,0 +1,16 @@
+{
+  "name": "nyarikezek",
+  "version": "1.0.0",
+  "description": "NyáriKezek – Kert & Ház Szolgáltatások weboldal",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "express": "^4.18.3",
+    "express-rate-limit": "^7.4.0",
+    "nodemailer": "^8.0.5"
+  }
+}
