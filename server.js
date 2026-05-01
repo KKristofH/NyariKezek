@@ -9,6 +9,9 @@ const path      = require('path');
 const app  = express();
 const PORT = process.env.PORT || 3000;
 
+// Render proxy mögött a rate limiter helyesen azonosítsa az IP-t
+app.set('trust proxy', 1);
+
 // ── Biztonsági fejlécek ──────────────────────────────────────────
 app.use((_req, res, next) => {
     res.setHeader('X-Content-Type-Options', 'nosniff');
@@ -36,7 +39,9 @@ function getMailer() {
             host:   process.env.SMTP_HOST || 'smtp.gmail.com',
             port:   parseInt(process.env.SMTP_PORT) || 587,
             secure: process.env.SMTP_SECURE === 'true',
-            auth:   { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS }
+            auth:   { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
+            // Render IPv6 probléma megkerülése – kényszerítjük az IPv4-et
+            family: 4
         });
     }
     return _mailer;
@@ -125,7 +130,7 @@ app.listen(PORT, () => {
 ╔══════════════════════════════════════════╗
 ║       NyáriKezek – Backend szerver       ║
 ╠══════════════════════════════════════════╣
-║  Weboldal  →  http://localhost:${PORT}       ║
+║  Weboldal  →  http://localhost:${PORT}   ║
 ╚══════════════════════════════════════════╝`);
     if (!process.env.SMTP_USER) {
         console.warn('\n⚠️  E-mail nincs konfigurálva! Töltsd ki a .env fájlt.');
